@@ -10,14 +10,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late double _deviceHeigth, _deviceWidth;
+  late double _deviceHeigth;
   String? _newTaskContent;
   Box? _box;
 
+
   @override
   Widget build(BuildContext context) {
+
     _deviceHeigth = MediaQuery.of(context).size.height;
-    _deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -36,8 +37,16 @@ class _HomePageState extends State<HomePage> {
     return FutureBuilder(
         future: Hive.openBox('tasks'),
         builder: (BuildContext _context, AsyncSnapshot _snapshot) {
+          // if (_snapshot.connectionState == ConnectionState.done) {
+          //   if (_snapshot.hasError) {
+          //     return Text(_snapshot.error.toString());
+          //   } else {
+          //     return Text('doesnot have errr');
+          //     Hive.openBox('tasks');}
+          // }
           if (_snapshot.hasData) {
             _box = _snapshot.data;
+            print("the data in hive ${_box?.length}");
             return _taskList();
           } else {
             return const Center(
@@ -53,7 +62,7 @@ class _HomePageState extends State<HomePage> {
     // _box?.add(_newTask.toMap());
     List tasks = _box!.values.toList();
     return ListView.builder(
-      itemCount: tasks.length,
+      itemCount: tasks?.length,
       itemBuilder: (BuildContext _context, int _index) {
         var task = Task.fromMap(tasks[_index]);
         return ListTile(
@@ -66,11 +75,24 @@ class _HomePageState extends State<HomePage> {
           subtitle: Text(
             task.timeStamp.toString(),
           ),
-          trailing: Icon(
-            task.done
-                ? Icons.check_box_outlined
-                : Icons.check_box_outline_blank_outlined,
-            color: Colors.red,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                task.done
+                    ? Icons.check_box_outlined
+                    : Icons.check_box_outline_blank_outlined,
+                color: Colors.red,
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _box!.deleteAt(_index);
+                  });
+                },
+                icon: Icon(Icons.delete),
+              )
+            ],
           ),
           onTap: () {
             task.done = !task.done;
@@ -82,7 +104,7 @@ class _HomePageState extends State<HomePage> {
           },
           onLongPress: () {
             setState(() {
-              _box!.delete(_index);
+              _box!.deleteAt(_index);
             });
           },
         );
@@ -92,39 +114,42 @@ class _HomePageState extends State<HomePage> {
 
   Widget _addTaskButton() {
     return FloatingActionButton(
-      onPressed: _displayTaskPopup,
-      child: Icon(Icons.add),
+      onPressed: () {
+        //_displayTaskPopup();
+        Navigator.pushNamed(context, '/second');
+      },
+      child: const Icon(Icons.add),
     );
   }
 
-  void _displayTaskPopup() {
-    showDialog(
-      context: context,
-      builder: (BuildContext _context) {
-        return AlertDialog(
-          title: Text('Add New Task!'),
-          content: TextField(
-            onSubmitted: (_) {
-              if (_newTaskContent != null) {
-                var _task = Task(
-                    content: _newTaskContent!,
-                    timeStamp: DateTime.now(),
-                    done: false);
-                _box!.add(_task.toMap());
-                setState(() {
-                  _newTaskContent = null;
-                  Navigator.pop(context);
-                });
-              }
-            },
-            onChanged: (_value) {
-              setState(() {
-                _newTaskContent = _value;
-              });
-            },
-          ),
-        );
-      },
-    );
-  }
+  // void _displayTaskPopup() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext _context) {
+  //       return AlertDialog(
+  //         title: Text('Add New Task!'),
+  //         content: TextField(
+  //           onSubmitted: (_) {
+  //             if (_newTaskContent != null) {
+  //               var _task = Task(
+  //                   content: _newTaskContent!,
+  //                   timeStamp: DateTime.now(),
+  //                   done: false);
+  //               _box!.add(_task.toMap());
+  //               setState(() {
+  //                 _newTaskContent = null;
+  //                 Navigator.pop(context);
+  //               });
+  //             }
+  //           },
+  //           onChanged: (_value) {
+  //             setState(() {
+  //               _newTaskContent = _value;
+  //             });
+  //           },
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }

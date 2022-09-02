@@ -12,6 +12,9 @@ class Task {
         done: task["done"]);
   }
   Map toMap() {
+    print('content => ${content}');
+    print('timeStamp => ${timeStamp}');
+    print('done => ${done}');
     return {
       "content": content,
       "timeStamp": timeStamp,
